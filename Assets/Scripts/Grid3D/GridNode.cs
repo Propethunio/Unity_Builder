@@ -11,6 +11,8 @@ public class GridNode {
     public int hCost;
     public int fCost;
     public bool isWalkable;
+    public bool isRoad;
+    public bool isTempRoad;
     public GridNode cameFromNode;
     private BuildedObject buildedObject;
 
@@ -44,5 +46,9 @@ public class GridNode {
 
     public override string ToString() {
         return x + "," + z;
+    }
+
+    public bool GetIsWalkable() {
+        return isWalkable;
     }
 }

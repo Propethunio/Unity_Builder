@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b742aaf02f1871840ac8259458d3e61f, type: 3}
+  m_Name: RoadEnd
+  m_EditorClassIdentifier: 
+  nameString: 
+  prefab: {fileID: 1301952532457504714, guid: 091cf0d8d549ee04bb44c9d9226ad3d8, type: 3}
+  visual: {fileID: 1301952532457504714, guid: fd9d03885dcbb8643a30687955fe873c, type: 3}
+  width: 1
+  height: 1
+  isRoad: 1

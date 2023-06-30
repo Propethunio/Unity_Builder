@@ -8,7 +8,7 @@ public class BuildedObject : MonoBehaviour {
     private Vector2Int origin;
     private BuildableObjectSO.Dir dir;
 
-    public static BuildedObject Create(Vector3 worldPosition, Vector2Int origin, BuildableObjectSO.Dir dir, BuildableObjectSO buildableObjectSO) {
+    public static BuildedObject CreateBuilding(Vector3 worldPosition, Vector2Int origin, BuildableObjectSO.Dir dir, BuildableObjectSO buildableObjectSO) {
         BuildedObject buildedObject = Instantiate(buildableObjectSO.prefab, worldPosition, Quaternion.Euler(0, buildableObjectSO.GetRotationAngle(dir), 0)).GetComponent<BuildedObject>();
         buildedObject.buildableObjectSO = buildableObjectSO;
         buildedObject.origin = origin;
