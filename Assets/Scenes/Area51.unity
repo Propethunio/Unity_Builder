@@ -561,6 +561,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5a494c9129a0d3d4e97434a9eebcfe96, type: 2}
   - {fileID: 11400000, guid: b7204d58d48ee7443813b3e088f08838, type: 2}
   - {fileID: 11400000, guid: 026c148632c0abf46b8ab14588841345, type: 2}
+  - {fileID: 11400000, guid: 1a7a1491142047441864f13bdc27f20d, type: 2}
   mouseColliderMask:
     serializedVersion: 2
     m_Bits: 64

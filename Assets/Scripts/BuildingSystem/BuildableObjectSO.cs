@@ -18,6 +18,7 @@ public class BuildableObjectSO : ScriptableObject {
     public int width;
     public int height;
     public bool isRoad;
+    public bool isFarm;
 
     public static Dir GetNextDir(Dir dir) {
         switch(dir) {

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -16,8 +17,9 @@ public class BuildingSystem : MonoBehaviour {
     private BuildableObjectSO buildableObjectSO;
     private BuildableObjectSO.Dir dir;
     private bool placingRoad;
-    private Vector3 startRoadPos;
-    private Vector2 lastGridPos;
+    private bool placingFarm;
+    private Vector3 startBuildPos;
+    private Vector2 lastBuildPos;
 
     private void Awake() {
         Instance = this;
@@ -53,6 +55,11 @@ public class BuildingSystem : MonoBehaviour {
             dir = BuildableObjectSO.Dir.Down;
             buildingGhost.RefreshVisual();
         }
+        if(Input.GetKeyDown(KeyCode.Alpha5)) {
+            buildableObjectSO = buildableObjectSOList[4];
+            dir = BuildableObjectSO.Dir.Down;
+            buildingGhost.RefreshVisual();
+        }
         if(Input.GetKeyDown(KeyCode.R)) {
             dir = BuildableObjectSO.GetNextDir(dir);
         }
@@ -63,10 +70,20 @@ public class BuildingSystem : MonoBehaviour {
             Vector3 mousePosition = GetMouseWorldPosition3D();
             grid.GetXZ(mousePosition, out int x, out int z);
             Vector2Int currGridPos = new Vector2Int(x, z);
-            if(lastGridPos != currGridPos) {
-                lastGridPos = currGridPos;
-                List<Vector3> path = PathfindingSystem.Instance.FindPath(startRoadPos, mousePosition);
+            if(lastBuildPos != currGridPos) {
+                lastBuildPos = currGridPos;
+                List<Vector3> path = PathfindingSystem.Instance.FindPath(startBuildPos, mousePosition);
                 buildingGhost.RefreshRoad(path);
+            }
+        }
+        if(placingFarm) {
+            Vector3 mousePosition = GetMouseWorldPosition3D();
+            grid.GetXZ(mousePosition, out int x, out int z);
+            Vector2Int currGridPos = new Vector2Int(x, z);
+            if(lastBuildPos != currGridPos) {
+                lastBuildPos = currGridPos;
+                List<GridNode> farmNodes = GetFarmNodes(startBuildPos, mousePosition);
+                buildingGhost.RefreshFarm(farmNodes);
             }
         }
     }
@@ -77,6 +94,12 @@ public class BuildingSystem : MonoBehaviour {
         GridNode node = grid.GetGridObject(x, z);
         if(node == null) {
             return;
+        }
+        if(buildableObjectSO.isFarm) {
+            if(node.CanBuild() || node.isFarm) {
+                BuildFarm(mousePosition, x, z);
+                return;
+            }
         }
         if(buildableObjectSO.isRoad) {
             if(node.CanBuild() || node.isRoad) {
@@ -97,15 +120,61 @@ public class BuildingSystem : MonoBehaviour {
         }
     }
 
+    private void BuildFarm(Vector3 mousePosition, int x, int z) {
+        if(!placingFarm) {
+            placingFarm = true;
+            startBuildPos = mousePosition;
+            lastBuildPos = new Vector2Int(x, z);
+            return;
+        }
+        List<GridNode> gridNodes = GetFarmNodes(startBuildPos, mousePosition);
+        bool canBuild = true;
+        foreach(GridNode node in gridNodes) {
+            if(!node.CanBuild() && !node.isFarm) {
+                canBuild = false;
+                break;
+            }
+        }
+        if(canBuild) {
+            foreach(GridNode node in gridNodes) {
+                if(!node.isFarm) {
+                    node.isFarm = true;
+                    Vector2Int rotationOffset = buildableObjectSO.GetRotationOffset(dir);
+                    Vector3 objectWorldPosition = grid.GetWorldPosition(node.x, node.z) + new Vector3(rotationOffset.x, 0, rotationOffset.y) * grid.GetCellSize();
+                    BuildedObject buildedObject = BuildedObject.CreateBuilding(objectWorldPosition, new Vector2Int(node.x, node.z), dir, buildableObjectSO);
+                    node.SetBuildedObject(buildedObject);
+                }
+            }
+            placingFarm = false;
+            buildingGhost.RefreshVisual();
+        }
+    }
+
+    private List<GridNode> GetFarmNodes(Vector3 startPos, Vector3 endPos) {
+        List<GridNode> nodes = new List<GridNode>();
+        grid.GetXZ(startPos, out int startX, out int startZ);
+        grid.GetXZ(endPos, out int endX, out int endZ);
+        for(int x = Mathf.Min(startX, endX); x <= Mathf.Max(startX, endX); x++) {
+            for(int z = Mathf.Min(startZ, endZ); z <= Mathf.Max(startZ, endZ); z++) {
+                GridNode node = grid.GetGridObject(x, z);
+                if(node == null) {
+                    return null;
+                }
+                nodes.Add(grid.GetGridObject(x, z));
+            }
+        }
+        return nodes;
+    }
+
     private void BuildRoad(Vector3 mousePosition, int x, int z) {
         if(!placingRoad) {
             placingRoad = true;
-            startRoadPos = mousePosition;
-            lastGridPos = new Vector2Int(x, z);
+            startBuildPos = mousePosition;
+            lastBuildPos = new Vector2Int(x, z);
         } else {
             placingRoad = false;
             buildingGhost.CleanOldVisual();
-            List<Vector3> posList = PathfindingSystem.Instance.FindPath(startRoadPos, mousePosition);
+            List<Vector3> posList = PathfindingSystem.Instance.FindPath(startBuildPos, mousePosition);
             List<GridNode> gridNodes = new List<GridNode>();
             foreach(Vector3 pos in posList) {
                 grid.GetXZ(pos, out x, out z);
@@ -117,7 +186,6 @@ public class BuildingSystem : MonoBehaviour {
                 roadFixer.RefreshNeighborns(node.x, node.z, gridNodes);
                 roadFixer.RefreshRoadNode(node);
             }
-            //buildableObjectSO = buildableObjectSOList[3];
             buildingGhost.RefreshVisual();
         }
     }

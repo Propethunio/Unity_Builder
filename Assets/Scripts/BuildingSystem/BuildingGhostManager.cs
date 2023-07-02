@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class BuildingGhostManager : MonoBehaviour {
@@ -7,7 +8,7 @@ public class BuildingGhostManager : MonoBehaviour {
     public static BuildingGhostManager Instance { get; private set; }
 
     private GameObject ghostObject;
-    private List<BuildedObject> ghostRoadList;
+    private List<BuildedObject> ghostObjectList;
     private List<GridNode> roadNodesList;
     private Grid3D<GridNode> grid;
     private BuildingSystem buildingSystem;
@@ -21,7 +22,7 @@ public class BuildingGhostManager : MonoBehaviour {
         grid = GridManager.Instance.GetGrid();
         buildingSystem = BuildingSystem.Instance;
         roadFixer = RoadFixerManager.Instance;
-        ghostRoadList = new List<BuildedObject>();
+        ghostObjectList = new List<BuildedObject>();
         roadNodesList = new List<GridNode>();
         RefreshVisual();
     }
@@ -43,6 +44,33 @@ public class BuildingGhostManager : MonoBehaviour {
         }
     }
 
+    public void RefreshFarm(List<GridNode> farmList) {
+        CleanOldVisual();
+        BuildableObjectSO buildableObjectSO = buildingSystem.GetBuildableObjectSO();
+        int rotation = buildingSystem.GetBuildableRotation();
+        bool canBuild = true;
+        if(farmList == null) {
+            return;
+        }
+        foreach(GridNode node in farmList) {
+            Vector3 objectWorldPosition = grid.GetWorldPosition(node.x, node.z);
+            BuildedObject buildedObject = Instantiate(buildableObjectSO.visual, objectWorldPosition, Quaternion.Euler(0, rotation, 0)).GetComponent<BuildedObject>();
+            ghostObjectList.Add(buildedObject);
+            if(!canBuild) {
+                continue;
+            }
+            if(!node.CanBuild() && !node.isFarm) {
+                canBuild = false;
+            }
+        }
+        if(!canBuild) {
+            foreach(BuildedObject ghostObject in ghostObjectList) {
+                ghostObject.GetComponentInChildren<MeshRenderer>().material.color = Color.red;
+            }
+        }
+        
+    }
+
     public void RefreshRoad(List<Vector3> RoadList) {
         CleanOldVisual();
         foreach(Vector3 road in RoadList) {
@@ -56,7 +84,7 @@ public class BuildingGhostManager : MonoBehaviour {
             BuildableObjectSO buildableObjectSO = roadFixer.GetBuildableRoadSO();
             int rotation = roadFixer.GetRoadRotation();
             BuildedObject buildedObject = Instantiate(buildableObjectSO.visual, objectWorldPosition, Quaternion.Euler(0, rotation, 0)).GetComponent<BuildedObject>();
-            ghostRoadList.Add(buildedObject);
+            ghostObjectList.Add(buildedObject);
         }
     }
 
@@ -64,11 +92,11 @@ public class BuildingGhostManager : MonoBehaviour {
         if(ghostObject != null) {
             Destroy(ghostObject);
         }
-        if(ghostRoadList.Count > 0) {
-            foreach(BuildedObject ghostRoad in ghostRoadList) {
-                ghostRoad.DestroySelf();
+        if(ghostObjectList.Count > 0) {
+            foreach(BuildedObject ghostObject in ghostObjectList) {
+                ghostObject.DestroySelf();
             }
-            ghostRoadList.Clear();
+            ghostObjectList.Clear();
         }
         if(roadNodesList.Count > 0) {
             foreach(GridNode node in roadNodesList) {

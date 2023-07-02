@@ -79,7 +79,7 @@ public class PathfindingSystem : MonoBehaviour {
             closedList.Add(currNode);
             foreach(GridNode neighbourNode in GetNeighborList(currNode)) {
                 if(closedList.Contains(neighbourNode)) continue;
-                if(!neighbourNode.isWalkable) {
+                if(!neighbourNode.isWalkable || neighbourNode.isFarm) {
                     closedList.Add(neighbourNode);
                     continue;
                 }

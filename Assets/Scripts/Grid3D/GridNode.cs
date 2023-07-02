@@ -13,6 +13,7 @@ public class GridNode {
     public bool isWalkable;
     public bool isRoad;
     public bool isTempRoad;
+    public bool isFarm;
     public GridNode cameFromNode;
     private BuildedObject buildedObject;
 
